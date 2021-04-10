@@ -16,6 +16,8 @@ macro(run_conan)
   conan_cmake_run(
     REQUIRES
     ${CONAN_EXTRA_REQUIRES}
+    ncurses/6.2
+    restinio/0.6.7@stiffstream/stable
     catch2/2.13.3
     docopt.cpp/0.6.2
     fmt/6.2.0

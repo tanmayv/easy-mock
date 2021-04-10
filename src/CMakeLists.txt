@@ -4,6 +4,7 @@ option(CPP_STARTER_USE_GTKMM "Enable compilation of GTKMM sample" OFF)
 option(CPP_STARTER_USE_IMGUI "Enable compilation of ImGui sample" OFF)
 option(CPP_STARTER_USE_NANA "Enable compilation of Nana GUI sample" OFF)
 option(CPP_STARTER_USE_SDL "Enable compilation of SDL sample" OFF)
+option(CMAKE_EXPORT_COMPILE_COMMANDS "Enable Compile command" ON)
 
 # sdl
 if(CPP_STARTER_USE_SDL)
@@ -41,12 +42,22 @@ if(CPP_STARTER_USE_NANA)
   add_subdirectory(nana)
 endif()
 
+find_library (
+    LUA
+    NAMES lua # what to look for
+    HINTS "${CMAKE_SOURCE_DIR}/lib" # where to look
+    NO_DEFAULT_PATH # do not search system default paths
+)
+message(STATUS "Found Lua: [${LUA}]")
 # Generic test that uses conan libs
 add_executable(intro main.cpp)
 target_link_libraries(
   intro
   PRIVATE project_options
           project_warnings
+          ${LUA}
           CONAN_PKG::docopt.cpp
+          CONAN_PKG::restinio
+          CONAN_PKG::ncurses
           CONAN_PKG::fmt
           CONAN_PKG::spdlog)
