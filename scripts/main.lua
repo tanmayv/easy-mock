@@ -15,8 +15,17 @@ em = {
 }
 
 mappings = {
-  { method = GET, endpoint = '/', handler = function(reqPtr) return "Hello from lua" end},
-  { method = GET, endpoint = '/hi/:name', handler = function(params) return "Hello " .. params['name']  end}
+  { 
+    method = GET, endpoint = '/',
+    handler = function(reqPtr)
+      return "Hello from lua" 
+    end
+  },
+  { 
+    method = GET, endpoint = '/hi/:name', handler = function(params) 
+      return "Hello " .. params['name']  
+    end
+  }
 }
 
 function defaultRequestHandler()

@@ -44,6 +44,13 @@ bool CheckLua(lua_State *L, int r)
 /*   return restinio::request_rejected(); */
 /* } */
 
+static int _CreateSuccessResponse(lua_State* L) {
+  // restinio::request_t -> request_t::response_builder_t
+  restinio::request_t *req = static_cast<restinio::request_t*>(lua_touserdata(L, -1));
+  req->create_response().set_body("Lua is handling it").done();
+  return 0;
+}
+
 void initLua() 
 {
   globalLuaState = luaL_newstate();
@@ -54,6 +61,7 @@ void initLua()
     std::cerr << lua_tostring(globalLuaState, -1) << std::endl;
     lua_pop(globalLuaState,1);
   }
+  lua_register(globalLuaState, "_CreateSuccessResponse", _CreateSuccessResponse);
 }
 
 
@@ -91,6 +99,7 @@ vector<std::string> split (std::string s, std::string delimiter) {
     res.push_back (s.substr (pos_start));
     return res;
 }
+
 
 void iterateTable(lua_State *L, int index, std::function<void(int,int)> keyFp) {
     lua_pushvalue(L, index);
@@ -176,7 +185,7 @@ void loadCallbackFnFromLua(lua_State *L, int fnIndex, int tableIndex) {
   std::cout << "Loading is done" << std::endl;
 }
 
-void pushParamsToLuaTable(lua_State *L, std::string endpoint, restinio::router::route_params_t &params) {
+void pushParamsToLuaTable(lua_State *L, std::string endpoint, restinio::request_t *req, restinio::router::route_params_t &params) {
   vector<std::string> paramKeys = split(endpoint, "/:");  
   lua_newtable(L);
   for (auto paramKey: paramKeys) {
@@ -188,24 +197,25 @@ void pushParamsToLuaTable(lua_State *L, std::string endpoint, restinio::router::
       lua_settable(L, -3);                // set key, value in table
     }
   }
+  lua_pushstring(L, "request");
+  lua_pushlightuserdata(L, req);
+  lua_settable(L, -3);
 }
+
 
 auto createRouterFromMappings(LuaMappings luaMappings)
 {
   auto router = std::make_unique< router_t >();
   for(auto& mapping: luaMappings.mappings) {
     if (mapping.method == GET) {
-      router->http_get(mapping.endpoint, [&]( auto req, auto params) {
+      router->http_get(mapping.endpoint, [&](auto req, auto params) {
         lua_State* L = requestLuaState();
         loadCallbackFnFromLua(L, mapping.handler, luaMappings.callackKey);
-        pushParamsToLuaTable(L, mapping.endpoint, params);
-        lua_pcall(L, 1, 1, 0);
-        std::string body = lua_tostring(L, -1);
-        lua_pop(L, 1);
-
-        req->create_response()
-          .set_body(body)
-          .done();
+        pushParamsToLuaTable(L, mapping.endpoint, req.get(), params);
+        lua_pcall(L, 1, 0, 0);
+/*         req->create_response() */
+/*           .set_body(body) */
+/*           .done(); */
         return restinio::request_accepted();
       });
     }
