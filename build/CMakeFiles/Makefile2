@@ -120,7 +120,7 @@ test/clean: test/CMakeFiles/catch_main.dir/clean
 test/CMakeFiles/relaxed_constexpr_tests.dir/all: test/CMakeFiles/catch_main.dir/all
 	$(MAKE) $(MAKESILENT) -f test/CMakeFiles/relaxed_constexpr_tests.dir/build.make test/CMakeFiles/relaxed_constexpr_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f test/CMakeFiles/relaxed_constexpr_tests.dir/build.make test/CMakeFiles/relaxed_constexpr_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/i346208/personal/easy-mock/build/CMakeFiles --progress-num=7,8 "Built target relaxed_constexpr_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/i346208/personal/easy-mock/build/CMakeFiles --progress-num=8,9 "Built target relaxed_constexpr_tests"
 .PHONY : test/CMakeFiles/relaxed_constexpr_tests.dir/all
 
 # Build rule for subdir invocation for target.
@@ -172,7 +172,7 @@ test/CMakeFiles/constexpr_tests.dir/clean:
 test/CMakeFiles/tests.dir/all: test/CMakeFiles/catch_main.dir/all
 	$(MAKE) $(MAKESILENT) -f test/CMakeFiles/tests.dir/build.make test/CMakeFiles/tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f test/CMakeFiles/tests.dir/build.make test/CMakeFiles/tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/i346208/personal/easy-mock/build/CMakeFiles --progress-num=9,10 "Built target tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/i346208/personal/easy-mock/build/CMakeFiles --progress-num=10,11 "Built target tests"
 .PHONY : test/CMakeFiles/tests.dir/all
 
 # Build rule for subdir invocation for target.
@@ -224,12 +224,12 @@ test/CMakeFiles/catch_main.dir/clean:
 src/CMakeFiles/intro.dir/all:
 	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/intro.dir/build.make src/CMakeFiles/intro.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/intro.dir/build.make src/CMakeFiles/intro.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/i346208/personal/easy-mock/build/CMakeFiles --progress-num=5,6 "Built target intro"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/i346208/personal/easy-mock/build/CMakeFiles --progress-num=5,6,7 "Built target intro"
 .PHONY : src/CMakeFiles/intro.dir/all
 
 # Build rule for subdir invocation for target.
 src/CMakeFiles/intro.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/i346208/personal/easy-mock/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/i346208/personal/easy-mock/build/CMakeFiles 3
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/intro.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/i346208/personal/easy-mock/build/CMakeFiles 0
 .PHONY : src/CMakeFiles/intro.dir/rule

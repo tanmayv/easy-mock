@@ -17,13 +17,13 @@ em = {
 mappings = {
   { 
     method = GET, endpoint = '/',
-    handler = function(reqPtr)
-      return "Hello from lua" 
+    handler = function(params)
+      _CreateSuccessResponse(params.request)
     end
   },
   { 
     method = GET, endpoint = '/hi/:name', handler = function(params) 
-      return "Hello " .. params['name']  
+      _CreateSuccessResponse(params.request)
     end
   }
 }

@@ -695,4 +695,6 @@ src/CMakeFiles/intro.dir/main.cpp.o: \
   /Users/i346208/personal/easy-mock/src/lib/lua.h \
   /Users/i346208/personal/easy-mock/src/lib/luaconf.h \
   /Users/i346208/personal/easy-mock/src/lib/lauxlib.h \
-  /Users/i346208/personal/easy-mock/src/lib/lualib.h
+  /Users/i346208/personal/easy-mock/src/lib/lualib.h \
+  /Users/i346208/personal/easy-mock/src/luainterface.h \
+  /Users/i346208/personal/easy-mock/src/common.h

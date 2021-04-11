@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/Users/i346208/personal/easy-mock/src/luainterface.cpp" "src/CMakeFiles/intro.dir/luainterface.cpp.o" "gcc" "src/CMakeFiles/intro.dir/luainterface.cpp.o.d"
   "/Users/i346208/personal/easy-mock/src/main.cpp" "src/CMakeFiles/intro.dir/main.cpp.o" "gcc" "src/CMakeFiles/intro.dir/main.cpp.o.d"
   )
 

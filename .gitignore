@@ -1,3 +1,4 @@
 .ccls-cache/
 build/bin build/cmake_install.cmake build/CMakeCache.txt build/CMakeFiles build/compile_commands.json build/conan.cmake build/conan.lock build/conanbuildinfo.cmake build/conanbuildinfo.txt build/conanfile.txt build/conaninfo.txt build/CTestTestfile.cmake build/graph_info.json build/lib build/Makefile build/src build/test
 src/build/
+build

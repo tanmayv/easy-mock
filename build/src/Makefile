@@ -140,6 +140,30 @@ intro/fast:
 	cd /Users/i346208/personal/easy-mock/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/intro.dir/build.make src/CMakeFiles/intro.dir/build
 .PHONY : intro/fast
 
+luainterface.o: luainterface.cpp.o
+.PHONY : luainterface.o
+
+# target to build an object file
+luainterface.cpp.o:
+	cd /Users/i346208/personal/easy-mock/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/intro.dir/build.make src/CMakeFiles/intro.dir/luainterface.cpp.o
+.PHONY : luainterface.cpp.o
+
+luainterface.i: luainterface.cpp.i
+.PHONY : luainterface.i
+
+# target to preprocess a source file
+luainterface.cpp.i:
+	cd /Users/i346208/personal/easy-mock/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/intro.dir/build.make src/CMakeFiles/intro.dir/luainterface.cpp.i
+.PHONY : luainterface.cpp.i
+
+luainterface.s: luainterface.cpp.s
+.PHONY : luainterface.s
+
+# target to generate assembly for a file
+luainterface.cpp.s:
+	cd /Users/i346208/personal/easy-mock/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/intro.dir/build.make src/CMakeFiles/intro.dir/luainterface.cpp.s
+.PHONY : luainterface.cpp.s
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -174,6 +198,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... intro"
+	@echo "... luainterface.o"
+	@echo "... luainterface.i"
+	@echo "... luainterface.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "../bin/intro"
   "../bin/intro.pdb"
+  "CMakeFiles/intro.dir/luainterface.cpp.o"
+  "CMakeFiles/intro.dir/luainterface.cpp.o.d"
   "CMakeFiles/intro.dir/main.cpp.o"
   "CMakeFiles/intro.dir/main.cpp.o.d"
 )
