@@ -10,6 +10,9 @@ extern "C" {
 #include <lualib.h>
 }
 
+using std::map;
+using std::string;
+
 class LuaInterface {
   public:
     lua_State* getState();
@@ -25,8 +28,9 @@ class LuaInterface {
     //  loading in this method
     void loadCallbackFnFromLua(int fnIndex, int tableIndex); 
 
-    void pushParamsToLuaTable(std::string endpoint, restinio::request_t *req, restinio::router::route_params_t &params); 
+    void pushStringKeyValueToTable(int tableIndex, string key, string value);
 
+    void pushPointerToTable(int tableIndex, string key, void *ptr);
     LuaInterface() {
       L = luaL_newstate();
     };

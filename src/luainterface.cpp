@@ -3,20 +3,6 @@ using std::vector;
 
 lua_State* LuaInterface::getState() {return L;}
 
-std::vector<std::string> split (std::string s, std::string delimiter) {
-    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
-    std::string token;
-    std::vector<std::string> res;
-
-    while ((pos_end = s.find (delimiter, pos_start)) != std::string::npos) {
-        token = s.substr (pos_start, pos_end - pos_start);
-        pos_start = pos_end + delim_len;
-        res.push_back (token);
-    }
-
-    res.push_back (s.substr (pos_start));
-    return res;
-}
 void LuaInterface::iterateTable(int index, std::function<void(int,int)> keyFp) {
   lua_pushvalue(L, index);
   // stack now contains: -1 => table
@@ -68,7 +54,6 @@ void LuaInterface::loadMappingsFromLua(int index, LuaMappings &luaMappings) {
       [&](int, int valueIndex) -> void{
       if (!lua_istable(L, valueIndex))
       {
-      std::cout << "Not a valid table to iterate";
       return;
       }
       Mapping m;
@@ -82,47 +67,34 @@ void LuaInterface::loadMappingsFromLua(int index, LuaMappings &luaMappings) {
           }
           if (key == "handler" && lua_isfunction(L, valueIndex)) {
           m.handler = storeLuaFunctionInTable(valueIndex, luaMappings.callackKey);
-          std::cout <<"Handler added: " << m.handler;
           }
           }); 
-      std::cout <<"New mapping added: " << m.endpoint;
       luaMappings.mappings.push_back(m);
       });
-  std::cout <<"Finished adding mappings";
 }
 
 // Pop the function from stack after calling the fn
 //  loading in this method
 void LuaInterface::loadCallbackFnFromLua(int fnIndex, int tableIndex) {
   // get the table on top
-  lua_rawgeti(L, LUA_REGISTRYINDEX, tableIndex);
-  if (lua_istable(L, -1)) {
-    std::cout << "table is correct" << std::endl;
-  }
+  lua_rawgeti(L, LUA_REGISTRYINDEX, tableIndex); // -2
   // get the fn from the table
-  lua_rawgeti(L, -1, fnIndex);
-  if (lua_isfunction(L, -1)) {
-    std::cout << "Function is correct" << std::endl;
-  }
-  if (lua_isstring(L, -1)) {
-    std::cout << lua_tostring(L, -1) << std::endl;
-  }
-  std::cout << "Loading is done" << std::endl;
+  lua_rawgeti(L, -1, fnIndex); // -1
+  lua_remove(L, -2);
 }
 
-void LuaInterface::pushParamsToLuaTable(std::string endpoint, restinio::request_t *req, restinio::router::route_params_t &params) {
-  vector<std::string> paramKeys = split(endpoint, "/:");  
-  lua_newtable(L);
-  for (auto paramKey: paramKeys) {
-    if (params.has(paramKey)) {
-      const std::string value = restinio::cast_to<std::string>(params[paramKey]);
-      std::cout << "Pushing params " << paramKey << ":" << value << std::endl;
-      lua_pushstring(L, paramKey.data()); // set key
-      lua_pushstring(L, value.data());    // set value  
-      lua_settable(L, -3);                // set key, value in table
-    }
-  }
-  lua_pushstring(L, "request");
-  lua_pushlightuserdata(L, req);
+void LuaInterface::pushPointerToTable(int tableIndex, string key, void *ptr) {
+  lua_pushvalue(L, tableIndex);
+  lua_pushstring(L, key.data());
+  lua_pushlightuserdata(L, ptr);
   lua_settable(L, -3);
+  lua_pop(L, 1);
+}
+
+void LuaInterface::pushStringKeyValueToTable(int tableIndex, string key, string value) {
+  lua_pushvalue(L, tableIndex);
+  lua_pushstring(L, key.data());
+  lua_pushstring(L, value.data());
+  lua_settable(L, -3);
+  lua_pop(L, 1);
 }
