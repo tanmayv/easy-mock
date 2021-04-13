@@ -50,7 +50,7 @@ find_library (
 )
 message(STATUS "Found Lua: [${LUA}]")
 # Generic test that uses conan libs
-add_executable(intro main.cpp luainterface.cpp gui.cpp widgets.cpp)
+add_executable(intro main.cpp luainterface.cpp gui.cpp widgets.cpp dashboard.cpp)
 include_directories(lib)
 target_link_libraries(
   intro

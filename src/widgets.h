@@ -38,10 +38,13 @@ namespace GUI {
     std::string label;
     int current = 0;
     int startIndex = 0;
+    function<void(int, std::string)> selectCb;
   public:
     vector<std::string> content;
     ScrollingContainer(std::string, int_pair_t size);
     ScrollingContainer(std::string, vector<std::string> c, int_pair_t size);
+    void onSelect(function<void(int, std::string)>);
+    void addField(std::string entry, int index);
     bool onKey(int key) override;
     void draw(Renderer* r) override;
   };

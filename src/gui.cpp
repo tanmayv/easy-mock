@@ -3,7 +3,6 @@
 namespace GUI {
   void traverseNodeTree(Node *h, function<void(Node*)> cb) {
     cb(h);
-    std::cout << "Here: " << std::endl;
     for (auto node: h->children) {
       traverseNodeTree(node, cb);
     } 
@@ -37,11 +36,9 @@ namespace GUI {
     head = h;
     focusList = {};
     focusList.push(nullptr);
-    std::cout << "Start Traverse";
     traverseNodeTree(head, [&](Node* child) {
           if (child->options.canBeFocused) focusList.push(child);
         });
-    std::cout << "Focusable: " << focusList.size() << std::endl;
   };
 
   void NodeTreeManager::nextFocus() {
@@ -85,7 +82,6 @@ namespace GUI {
     cbreak();
     int input = 0; 
     while (input != 'q') {
-      refresh();
       fd_set fds;
       FD_ZERO(&fds);
       FD_SET(STDIN_FILENO, &fds);

@@ -3,18 +3,18 @@
 #include <ncurses.h>
 #include "gui.h"
 #include "widgets.h"
+#include "dashboard.h"
 
 using std::vector;
 using router_t = restinio::router::express_router_t<>;
 using traits_t =
   restinio::traits_t<
     restinio::asio_timer_manager_t,
-    restinio::shared_ostream_logger_t,
+    restinio::null_logger_t,
     router_t>;
 
 LuaInterface luaInterface;
-GUI::NodeTreeManager ntm;
-
+Dashboard db;
 bool CheckLua(lua_State *L, int r)
 {
   if (r != LUA_OK) {
@@ -26,9 +26,7 @@ bool CheckLua(lua_State *L, int r)
 
 static int CreateSuccessResponse(lua_State *L)
 {
-  std::cout << "Got the call from lua" << std::endl;
   restinio::request_t *req = static_cast<restinio::request_t *>(lua_touserdata(L, -1));
-  std::cout << req << std::endl;
   req->create_response().set_body("Lua is handling it").done();
   return 0;
 }
@@ -66,8 +64,10 @@ auto createRouterFromMappings(LuaMappings luaMappings)
   auto router = std::make_unique<router_t>();
   for (auto &mapping : luaMappings.mappings) {
     if (mapping.method == GET) {
-      router->http_get(mapping.endpoint, [&](auto req, auto params) {
-        std::cout << mapping.endpoint << " received" << std::endl;
+      router->http_get(mapping.endpoint, [&](restinio::request_handle_t req, auto params) {
+        RequestView rv;
+        rv.endpoint = req->header().request_target(); 
+        db.addIncomingRequest(rv);
         vector<std::string> paramKeys = split(mapping.endpoint, "/:");
         luaInterface.loadCallbackFnFromLua(mapping.handler, luaMappings.callackKey);
         lua_newtable(luaInterface.getState());
@@ -78,7 +78,6 @@ auto createRouterFromMappings(LuaMappings luaMappings)
           }
         }
         if (lua_pcall(luaInterface.getState(), 1, 0, 0) != 0) {
-          std::cout << lua_tostring(luaInterface.getState(), -1) << std::endl;
         }
         return restinio::request_accepted();
       });
@@ -89,7 +88,6 @@ auto createRouterFromMappings(LuaMappings luaMappings)
 
 void startServer(ServerConfig config, LuaMappings mappings)
 {
-  std::cout << "Server" << config.hostname << std::endl;
   restinio::run(
     restinio::on_this_thread<traits_t>()
       .port(config.port)
@@ -105,23 +103,19 @@ void createCallbackRegistryTable(LuaMappings &luaMapping)
   luaMapping.callackKey = tabKey;
 }
 
-void initGui()
+void initGui(LuaMappings mappings)
 {
-  GUI::Node* div = dynamic_cast<GUI::Node*>(new GUI::VerticalContainer());
-  GUI::Node* label = dynamic_cast<GUI::Node*>(new GUI::Label("This is a label"));
-  GUI::Node* button = dynamic_cast<GUI::Node*>(new GUI::Button("exit"));
-  GUI::Node* stringList = dynamic_cast<GUI::Node*>(new GUI::ScrollingContainer("String List", {"One", "Two", "Three", "Four"}, {30, 10}));
-
-  button->clickEventListener.push_back([&](){
-      endwin();
-    exit(0); 
-    return true; 
-  });
-  div->addChild(label);
-  div->addChild(button);
-  div->addChild(stringList);
-  ntm.setTreeHead(div);
-  ntm.start();
+  vector<RequestView> mappingsView;
+  for (auto mapping: mappings.mappings) {
+    RequestView rv;
+    rv.endpoint = mapping.endpoint;
+    rv.enabled = true;
+    rv.method = mapping.method;
+    rv.responseType = ACCEPT;
+    mappingsView.push_back(rv);
+  }
+  db.setMappings(mappingsView, [&](RequestView ){});
+  db.start();
 }
 
 int main()
@@ -144,7 +138,6 @@ int main()
   }
   luaInterface.loadConfigFromLua(-1, config);
   std::thread t(startServer, config, luaMappings);
-  std::cout << luaMappings.mappings.size() << std::endl;
-  initGui();
+  initGui(luaMappings);
   return 0;
 }
