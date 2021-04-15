@@ -2,7 +2,6 @@
 using std::vector;
 
 lua_State* LuaInterface::getState() {return L;}
-
 void LuaInterface::iterateTable(int index, std::function<void(int,int)> keyFp) {
   lua_pushvalue(L, index);
   // stack now contains: -1 => table

@@ -1,11 +1,13 @@
 #include <restinio/all.hpp>
-#include "luainterface.h"
 #include <ncurses.h>
+#include <sol/sol.hpp>
 #include "gui.h"
 #include "widgets.h"
 #include "dashboard.h"
 
 using std::vector;
+using std::cout;
+using std::endl;
 using router_t = restinio::router::express_router_t<>;
 using traits_t =
   restinio::traits_t<
@@ -13,34 +15,35 @@ using traits_t =
     restinio::null_logger_t,
     router_t>;
 
-LuaInterface luaInterface;
-Dashboard db;
-bool CheckLua(lua_State *L, int r)
+int luaNodeCallbackTable = 0;
+GUI::NodeTreeManager ntm;
+sol::state lua;
+
+static int CreateSuccessResponse(restinio:: request_t *req)
 {
-  if (r != LUA_OK) {
-    std::string errormsg = lua_tostring(L, -1);
-    return false;
-  }
-  return true;
+  req->create_response().set_body("Lua is handling it").done();
+  return 0;
 }
 
-static int CreateSuccessResponse(lua_State *L)
-{
-  restinio::request_t *req = static_cast<restinio::request_t *>(lua_touserdata(L, -1));
-  req->create_response().set_body("Lua is handling it").done();
+GUI::Node* getNodeFromLuaTable(sol::table);
+
+int DrawTree(sol::table uiTree) {
+
+  GUI::Node* tree = getNodeFromLuaTable(uiTree); 
+  cout << "Got tree " << tree << endl;
+  ntm.setTreeHead(tree);   
   return 0;
 }
 
 void initLua()
 {
-  luaL_openlibs(luaInterface.getState());
+  lua.open_libraries(sol::lib::base);
+  lua.script_file("scripts/main.lua", [&](lua_State*, sol::protected_function_result pfr) {
+    return pfr;
+  });
 
-  if (luaL_dofile(luaInterface.getState(), "scripts/main.lua")) {
-    std::cerr << "Something went wrong loading the chunk (syntax error?)" << std::endl;
-    std::cerr << lua_tostring(luaInterface.getState(), -1) << std::endl;
-    lua_pop(luaInterface.getState(), 1);
-  }
-  lua_register(luaInterface.getState(), "_CreateSuccessResponse", CreateSuccessResponse);
+  lua["_CreateSuccessResponse"] = &CreateSuccessResponse;
+  lua["_DrawTree"] = &DrawTree;
 }
 
 std::vector<std::string> split(std::string s, std::string delimiter)
@@ -59,26 +62,30 @@ std::vector<std::string> split(std::string s, std::string delimiter)
   return res;
 }
 
-auto createRouterFromMappings(LuaMappings luaMappings)
+auto createRouterFromMappings()
 {
   auto router = std::make_unique<router_t>();
-  for (auto &mapping : luaMappings.mappings) {
-    if (mapping.method == GET) {
-      router->http_get(mapping.endpoint, [&](restinio::request_handle_t req, auto params) {
+  for (const auto &it : lua["mappings"].get_or_create<sol::table>()) {
+    sol::table mapping = it.second;
+    if (mapping["method"] == GET) {
+      cout << "Mapping added " << mapping.get<std::string>("endpoint") << endl;
+      router->http_get(mapping.get<std::string>("endpoint"), [mapping](restinio::request_handle_t req, auto params) {
         RequestView rv;
+        cout << "handling Mapping " << mapping.get<std::string>("endpoint") << endl;
         rv.endpoint = req->header().request_target(); 
-        db.addIncomingRequest(rv);
-        vector<std::string> paramKeys = split(mapping.endpoint, "/:");
-        luaInterface.loadCallbackFnFromLua(mapping.handler, luaMappings.callackKey);
-        lua_newtable(luaInterface.getState());
-        luaInterface.pushPointerToTable(-1, "request", req.get());
+        /* db.addIncomingRequest(rv); */
+        vector<std::string> paramKeys = split(mapping["endpoint"], "/:");
+        vector<std::string> paramTable = split(mapping["endpoint"], "/:");
+        /* luaInterface.loadCallbackFnFromLua(mapping.handler, luaMappings.callackKey); */
+        /* lua_newtable(luaInterface.getState()); */
+        /* luaInterface.pushPointerToTable(-1, "request", req.get()); */
         for (auto paramKey : paramKeys) {
           if (params.has(paramKey)) {
-            luaInterface.pushStringKeyValueToTable(-1, paramKey, static_cast<string>(params[paramKey]));
+            paramTable.push_back(paramKey);
+            paramTable.push_back(static_cast<std::string>(params[paramKey]));
           }
         }
-        if (lua_pcall(luaInterface.getState(), 1, 0, 0) != 0) {
-        }
+        mapping["handler"](req.get(), paramKeys);
         return restinio::request_accepted();
       });
     }
@@ -86,23 +93,16 @@ auto createRouterFromMappings(LuaMappings luaMappings)
   return router;
 }
 
-void startServer(ServerConfig config, LuaMappings mappings)
+void startServer()
 {
+  uint16_t port = lua["serverConfig"]["port"];
+  std::string hostname = lua["serverConfig"]["hostname"];
   restinio::run(
     restinio::on_this_thread<traits_t>()
-      .port(config.port)
-      .address(config.hostname)
-      .request_handler(createRouterFromMappings(mappings)));
+      .port(port)
+      .address(hostname)
+      .request_handler(createRouterFromMappings()));
 }
-
-void createCallbackRegistryTable(LuaMappings &luaMapping)
-{
-  lua_State *L = luaInterface.getState();
-  lua_newtable(L);
-  int tabKey = luaL_ref(L, LUA_REGISTRYINDEX);
-  luaMapping.callackKey = tabKey;
-}
-
 void initGui(LuaMappings mappings)
 {
   vector<RequestView> mappingsView;
@@ -114,8 +114,49 @@ void initGui(LuaMappings mappings)
     rv.responseType = ACCEPT;
     mappingsView.push_back(rv);
   }
-  db.setMappings(mappingsView, [&](RequestView ){});
-  db.start();
+  /* db.setMappings(mappingsView, [&](RequestView ){}); */
+  /* db.start(); */
+}
+
+GUI::Node* getNodeFromLuaTable(sol::table tree) {
+  
+  GUI::LUA_NODE nodeType = GUI::LUA_NODE(tree["nodeType"]);
+  cout << "Read node type" << nodeType <<endl;
+
+  switch (nodeType) {
+    case (GUI::LUA_VERTIAL_NODE): {
+      GUI::VerticalContainer* vn = new GUI::VerticalContainer();
+      sol::table children = tree["children"].get_or_create<sol::table>();
+      for (const auto& key_value_pair: children ) {
+        if (auto node = getNodeFromLuaTable(key_value_pair.second)) {
+          vn->addChild(node);
+        }
+      }
+      return vn;
+    }
+
+    case (GUI::LUA_BUTTON_NODE): {
+      std::string label = tree["label"];
+      GUI::Button* bn = new GUI::Button(label);
+
+        bn->clickEventListener.push_back([](){
+          mvprintw(10, 1, "calling cb");
+          refresh();
+          lua["cb"]();
+          return true;
+        });
+      return bn;
+    }
+
+    case (GUI::LUA_LABEL_NODE): {
+      std::string label = tree["label"];
+      GUI::Label* ln = new GUI::Label(label);
+
+      return ln;
+    }
+  }
+
+  return nullptr;
 }
 
 int main()
@@ -123,21 +164,11 @@ int main()
   LuaMappings luaMappings;
   ServerConfig config;
   initLua();
+  /* std::thread t(startServer); */
+  lua["main"]();
+  int i = 0;
+  ntm.start();
 
-  createCallbackRegistryTable(luaMappings);
-  lua_getglobal(luaInterface.getState(), "mappings");
-  bool haveMappings = lua_istable(luaInterface.getState(), -1);
-  if (!haveMappings) {
-    return 1;
-  }
-  luaInterface.loadMappingsFromLua(-1, luaMappings);
-  lua_getglobal(luaInterface.getState(), "serverConfig");
-  bool haveConfig = lua_istable(luaInterface.getState(), -1);
-  if (!haveConfig) {
-    return 1;
-  }
-  luaInterface.loadConfigFromLua(-1, config);
-  std::thread t(startServer, config, luaMappings);
-  initGui(luaMappings);
+  /* t.join(); */
   return 0;
 }

@@ -139,4 +139,19 @@ namespace GUI {
   void ScrollingContainer::addField(std::string entry, int index) {
     content.insert(content.begin() + index, entry);
   }
+
+  void Label::cleanup() {
+    wdeleteln(win);
+    Node::cleanup();
+  }
+
+  void ScrollingContainer::cleanup() {
+    wdeleteln(win);
+    Node::cleanup();
+  }
+  
+  void Button::cleanup() {
+    wdeleteln(win);
+    Node::cleanup();
+  }
 }

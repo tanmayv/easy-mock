@@ -18,6 +18,7 @@ namespace GUI {
   public:
     void draw(Renderer* r) override;
     void addChild(Node* r) override;
+    void cleanup() override;
     Label(std::string);
   };
 
@@ -28,6 +29,7 @@ namespace GUI {
   public:
     Button(std::string);
     void addChild(Node* r) override;
+    void cleanup() override;
     void draw(Renderer* r) override;
     bool onKey(int key) override;
   };
@@ -45,6 +47,7 @@ namespace GUI {
     ScrollingContainer(std::string, vector<std::string> c, int_pair_t size);
     void onSelect(function<void(int, std::string)>);
     void addField(std::string entry, int index);
+    void cleanup() override;
     bool onKey(int key) override;
     void draw(Renderer* r) override;
   };

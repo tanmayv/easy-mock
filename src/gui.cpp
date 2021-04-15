@@ -12,6 +12,13 @@ namespace GUI {
     for (auto n: children) n->draw(r);
   }
 
+  void Node::cleanup() {
+    for (auto n: children) {
+      n->cleanup();
+      delete n;
+    } 
+  }
+
   void Node::addChild(Node *c) {
     children.push_back(c); 
   }
@@ -33,6 +40,10 @@ namespace GUI {
   }
 
   void NodeTreeManager::setTreeHead(Node* h) {
+    if (head) {
+      head->cleanup();
+      delete head;
+    }
     head = h;
     focusList = {};
     focusList.push(nullptr);

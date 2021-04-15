@@ -18,6 +18,11 @@ namespace GUI {
   using std::function;
   using std::vector;
 
+  enum LUA_NODE {
+    LUA_VERTIAL_NODE,
+    LUA_LABEL_NODE,
+    LUA_BUTTON_NODE
+  };
   struct Renderer {
     void refresh(WINDOW *win);    
     WINDOW* newWindow(int_pair_t position, int_pair_t size);
@@ -44,6 +49,7 @@ namespace GUI {
     virtual void draw(Renderer *renderer);
     virtual void addChild(Node* child);
     virtual void removeChild(Node* child);
+    virtual void cleanup();
     virtual bool onKey(int key);
     virtual ~Node() = default;
     vector<function<bool(void)>> clickEventListener;
